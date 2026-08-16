@@ -7,9 +7,14 @@ ifeq ($(OS),Windows_NT)
 	endif
 	LIBARCH ?=
 	CC := gcc.exe
-	CFLAGS := -DWINDOWS -Wall -Wextra -Werror -Wno-unused-parameter -Wno-error=unused-parameter -Ilibusb
-	LDFLAGS := -Llibusb -lusb-1.0$(LIBARCH) -lWs2_32 -lmsvcrt
 	OBJS := src/main.o src/getopt.o src/stlink.o src/crypto.o tiny-AES-c/aes.o
+	ifneq ($(wildcard libusb/libusb-1.0$(LIBARCH).a),)
+		CFLAGS := -DWINDOWS -Wall -Wextra -Werror -Wno-unused-parameter -Wno-error=unused-parameter -Ilibusb
+		LDFLAGS := -Llibusb -lusb-1.0$(LIBARCH) -lWs2_32 -lmsvcrt
+	else
+		CFLAGS := -DWINDOWS -Wall -Wextra -Werror -Wno-unused-parameter -Wno-error=unused-parameter $(shell pkg-config --cflags libusb-1.0)
+		LDFLAGS := $(shell pkg-config --libs libusb-1.0) -lWs2_32
+	endif
 else
 	CFLAGS := -Wall -Wextra -Werror -Wno-unused-parameter -Wno-error=unused-parameter $(shell pkg-config --cflags libusb-1.0) -g -Og
 	LDFLAGS := $(shell pkg-config --libs libusb-1.0)
@@ -25,4 +30,4 @@ stlink-tool: $(OBJS)
 clean:
 	rm -f src/*.o
 	rm -f tiny-AES-c/*.o
-	rm -f stlink-tool
+	rm -f stlink-tool stlink-tool.exe

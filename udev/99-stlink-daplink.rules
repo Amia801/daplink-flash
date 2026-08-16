@@ -1,0 +1,5 @@
+# ST-Link V2 clone (bootloader / original firmware)
+SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="3748", MODE="0666", TAG+="uaccess"
+
+# DAP103 CMSIS-DAP (dap42)
+SUBSYSTEM=="usb", ATTR{idVendor}=="1209", ATTR{idProduct}=="da42", MODE="0666", TAG+="uaccess"
