@@ -1,6 +1,6 @@
 # ST-Link V2 → DAPLink（macOS）
 
-把廉价独立 **ST-Link V2** 克隆（USB `0483:3748`）刷成开源 **CMSIS-DAP**（`DAP103`，USB `1209:da42`），方便给 APM32、i.MX RT1064 等 ST-Link 不认的芯片下载。
+把廉价独立 **ST-Link V2** 克隆（USB `0483:3748`）刷成开源 **CMSIS-DAP**（`DAP103`，USB `1209:da42`），方便给 APM32、GD32、nRF52 等 ST-Link 不认的 Cortex-M 芯片下载。
 
 固件基于 [devanlai/dap42](https://github.com/devanlai/dap42)，刷写工具基于 [GabyPCgeeK/stlink-tool](https://github.com/GabyPCgeeK/stlink-tool)。ST 的 bootloader 会保留，之后还能刷回 ST-Link。
 
@@ -54,13 +54,16 @@ pyocd list
 ## 给目标芯片下载
 
 ```bash
-# NXP i.MX RT1064
-pyocd flash -t mimxrt1064 your.hex
+# 先看本机 pyocd 认哪些型号
+pyocd list --targets
 
-# 其它 Cortex-M：先 pyocd list --targets 或装 CMSIS pack
+# 例：STM32 / 极海 APM32（有 pack 时选对应型号）
+pyocd flash -t stm32f103rc your.hex
 ```
 
-接线：`SWDIO`、`SWCLK`、`GND`、`3.3V`。这套固件的 **RESET 在 PB6**（很多克隆排针上的 RST）。RT1064 建议接 RESET。
+没有内置型号就 `pyocd pack install` 对应厂家包，或在 Keil 里选 CMSIS-DAP。
+
+接线：`SWDIO`、`SWCLK`、`GND`、`3.3V`。这套固件的 **RESET 在 PB6**（很多克隆排针上的 RST），能接上更好。
 
 ## 重新编译固件（可选）
 
