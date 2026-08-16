@@ -1,0 +1,14 @@
+# Local toolchains (hundreds of MB)
+xpack-arm-none-eabi-gcc-*/
+xpack-arm-none-eabi-gcc.tar.gz
+*.tar.gz
+
+# Upstream clone used only to build firmware
+dap42/
+
+# Build junk
+**/*.o
+**/*.d
+**/*.elf
+**/*.map
+**/.DS_Store

@@ -1,0 +1,61 @@
+diff --git a/Makefile b/Makefile
+index ca4e148..80ccd62 100644
+--- a/Makefile
++++ b/Makefile
+@@ -136,3 +136,9 @@ DAP103-NUCLEO-STBOOT.bin: | $(BUILD_DIR)
+ 	$(Q)$(MAKE) TARGET=STLINKV2-1-STBOOT -C src/ clean
+ 	$(Q)$(MAKE) TARGET=STLINKV2-1-STBOOT -C src/
+ 	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
++
++DAP103-HID-STBOOT.bin: | $(BUILD_DIR)
++	@printf "  BUILD $(@)\n"
++	$(Q)$(MAKE) TARGET=STM32F103-HID-STBOOT -C src/ clean
++	$(Q)$(MAKE) TARGET=STM32F103-HID-STBOOT -C src/
++	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
+diff --git a/src/stm32f103/stlinkv2-dongle/target.c b/src/stm32f103/stlinkv2-dongle/target.c
+index 20e7b93..7b3855b 100644
+--- a/src/stm32f103/stlinkv2-dongle/target.c
++++ b/src/stm32f103/stlinkv2-dongle/target.c
+@@ -18,13 +18,24 @@
+ 
+ #include <libopencm3/stm32/rcc.h>
+ #include <libopencm3/stm32/gpio.h>
++#include <libopencm3/cm3/nvic.h>
++#include <libopencm3/cm3/scb.h>
+ 
+ #include "target.h"
+ #include "config.h"
+ 
+ /* Reconfigure processor settings */
+ void cpu_setup(void) {
++#if STLINK_ST_BOOT
++    /* Disable interrupts left enabled by the ST bootloader */
++    int i = 0;
++    for (i = 0; i * 32 < NVIC_IRQ_COUNT; i++) {
++        NVIC_ICER(i) = 0xFFFFFFFFUL;
++    }
+ 
++    /* Firmware is linked at 0x08004000 behind the ST bootloader */
++    SCB_VTOR = 0x08004000;
++#endif
+ }
+ 
+ /* Set STM32 to 72 MHz. */
+diff --git a/src/targets.mk b/src/targets.mk
+index df78c41..f1f4eda 100644
+--- a/src/targets.mk
++++ b/src/targets.mk
+@@ -130,6 +130,13 @@ ifeq ($(TARGET),STLINKV2-DONGLE)
+ 	DEFS               += -DDFU_AVAILABLE=0 -DPREFER_HID=0
+ 	ARCH                = STM32F1
+ endif
++ifeq ($(TARGET),STM32F103-HID-STBOOT)
++	TARGET_COMMON_DIR  := ./stm32f103
++	TARGET_SPEC_DIR    := ./stm32f103/stlinkv2-dongle
++	LDSCRIPT           ?= ./stm32f103/stm32f103x8-stlinkv2-1-boot.ld
++	DEFS               += -DDFU_AVAILABLE=0 -DPREFER_HID=1 -DSTLINK_ST_BOOT=1
++	ARCH                = STM32F1
++endif
+ ifeq ($(TARGET),STLINKV2-DONGLE-DAPBOOT)
+ 	TARGET_COMMON_DIR  := ./stm32f103
+ 	TARGET_SPEC_DIR    := ./stm32f103/stlinkv2-dongle
